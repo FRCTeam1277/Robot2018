@@ -76,7 +76,7 @@ public class DriveToVisionTargetRight extends Command {
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
     	
-    	Robot.driveTrain.drive(moveY, moveX, rotate, false);
+    	Robot.driveTrain.drive(moveY, -moveX, rotate, false);
     	}
     }
 

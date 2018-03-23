@@ -64,7 +64,7 @@ public class DriveToVisionTargetCenter extends Command {
     	moveX *= XSPEED_MULTIPLIER;
     	moveY *= YSPEED_MULTIPLIER;
     	if (moveX > MAX_SPEED) moveX = MAX_SPEED;
-    	else if (moveX < -MAX_SPEED) moveX = MAX_SPEED;
+    	else if (moveX < -MAX_SPEED) moveX = -MAX_SPEED;
     	if (moveY > MAX_SPEED) moveY = MAX_SPEED;
     	else if (moveY < -MAX_SPEED) moveY = -MAX_SPEED;
     	
@@ -73,10 +73,8 @@ public class DriveToVisionTargetCenter extends Command {
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
     	
-    	rotate = 0;
-    	moveY = 0;
     	
-    	Robot.driveTrain.drive(moveY, moveX, rotate, false);
+    	Robot.driveTrain.drive(moveY, -moveX, rotate, false);
     	}
     }
 
