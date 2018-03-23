@@ -61,6 +61,8 @@ public class Robot extends TimedRobot {
     	gains.getEntry("MOVE_D_GAIN").setDouble(0.001);
     	gains.getEntry("MOVE_F_GAIN").setDouble(0.0);
 		
+    	
+    	
 		RobotMap.init();
 		claw = new Claw();
 		clawRotator = new ClawRotator();
