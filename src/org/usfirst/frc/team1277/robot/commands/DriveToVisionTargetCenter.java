@@ -81,7 +81,7 @@ public class DriveToVisionTargetCenter extends Command {
     }
 
     protected boolean isFinished() {
-        return (objectWidth >= FINAL_WIDTH);
+        return (Robot.claw.holdingCube());
     }
     
     protected void end() {

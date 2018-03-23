@@ -14,6 +14,7 @@ import org.usfirst.frc.team1277.robot.autosequences.AutoScoreOnSwitchFromLeft;
 import org.usfirst.frc.team1277.robot.autosequences.AutoScoreOnSwitchFromRight;
 import org.usfirst.frc.team1277.robot.autosequences.DriveFoward;
 import org.usfirst.frc.team1277.robot.autosequences.DriveToAutoLine;
+import org.usfirst.frc.team1277.robot.autosequences.DriveToSwitchLeft;
 import org.usfirst.frc.team1277.robot.commands.DriveTimed;
 import org.usfirst.frc.team1277.robot.subsystems.Claw;
 import org.usfirst.frc.team1277.robot.subsystems.ClawRotator;
@@ -76,6 +77,7 @@ public class Robot extends TimedRobot {
 		chooser.addDefault("Drive To Auto Line", new DriveToAutoLine());
 		chooser.addObject("Drive Foward", new DriveFoward());
 		chooser.addObject("Timed Drive", new DriveTimed(0, 0.5, 2));
+		chooser.addObject("Drive To Switch Left", new DriveToSwitchLeft());
 		
 		chooser.addObject("Score On Scale From Left", new AutoScoreOnScaleFromLeft());
 		chooser.addObject("Score On Switch From Left", new AutoScoreOnSwitchFromLeft());

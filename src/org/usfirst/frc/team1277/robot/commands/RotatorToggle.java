@@ -40,7 +40,8 @@ public class RotatorToggle extends Command {
     		SmartDashboard.putNumber("Speed", speed);
     	}
     	else {
-    		Robot.clawRotator.rotate(RESIST_EMPTY_SPEED);
+    		if (Robot.claw.holdingCube()) Robot.clawRotator.rotate(RESIST_FULL_SPEED);
+    		else Robot.clawRotator.rotate(RESIST_EMPTY_SPEED);
     	}
     }
 

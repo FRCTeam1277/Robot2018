@@ -80,7 +80,7 @@ public class RobotMap {
 		
 		//Claw
 		clawMotorLeft = new Spark(1);
-		clawMotorRight = new Spark(2);
+		clawMotorRight = new Spark(3);
 		clawLimit = new DigitalInput(5);
 		
 		//Claw Retractor
