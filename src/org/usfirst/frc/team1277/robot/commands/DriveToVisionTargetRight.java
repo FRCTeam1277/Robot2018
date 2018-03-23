@@ -11,9 +11,9 @@ import edu.wpi.first.wpilibj.command.Command;
  */
 public class DriveToVisionTargetRight extends Command {
 	
-	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 180;
-	private final double XSPEED_MULTIPLIER = 0.004, YSPEED_MULTIPLIER = 20.0;
-	private final double  MAX_SPEED = 0.6, LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.005;
+	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 100;
+	private final double XSPEED_MULTIPLIER = 0.002, YSPEED_MULTIPLIER = 20.0;
+	private final double  MAX_SPEED = 0.5, LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.005;
 	private int mostSignificantObject;
 	private double objectWidth;
 	
@@ -67,7 +67,7 @@ public class DriveToVisionTargetRight extends Command {
     	moveX *= XSPEED_MULTIPLIER;
     	moveY *= YSPEED_MULTIPLIER;
     	if (moveX > MAX_SPEED) moveX = MAX_SPEED;
-    	else if (moveX < -MAX_SPEED) moveX = MAX_SPEED;
+    	else if (moveX < -MAX_SPEED) moveX = -MAX_SPEED;
     	if (moveY > MAX_SPEED) moveY = MAX_SPEED;
     	else if (moveY < -MAX_SPEED) moveY = -MAX_SPEED;
     	

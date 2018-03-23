@@ -1,14 +1,13 @@
 package org.usfirst.frc.team1277.robot.commands;
 
 import org.usfirst.frc.team1277.robot.Robot;
-import edu.wpi.first.networktables.*;
+
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/**
- *
- */
-public class DriveToVisionTargetLeft extends Command {
+public class DriveToVisionTargetCenter extends Command {
 	
 	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 100;
 	private final double XSPEED_MULTIPLIER = 0.002, YSPEED_MULTIPLIER = 20.0;
@@ -16,7 +15,7 @@ public class DriveToVisionTargetLeft extends Command {
 	private int mostSignificantObject;
 	private double objectWidth;
 
-    public DriveToVisionTargetLeft() {
+    public DriveToVisionTargetCenter() {
     	requires(Robot.driveTrain);
     }
 
@@ -45,9 +44,9 @@ public class DriveToVisionTargetLeft extends Command {
     	else {
     	for (int i = 0; i < numberOfObjects; i++) {
     		if (mostSignificantObject == -1) mostSignificantObject = i;
-    		else if ((vtargetobjw[i] * vtargetobjh[i])/*area*/ * (FRAME_WIDTH - (vtargetobjx[i] + (vtargetobjw[i] / 2)))/*position from right*/ > 
+    		else if ((vtargetobjw[i] * vtargetobjh[i])/*area*/ * Math.abs((FRAME_WIDTH / 2) - (vtargetobjx[i] + (vtargetobjw[i] / 2)))/*position from center*/ > 
     				(vtargetobjw[mostSignificantObject] * vtargetobjh[mostSignificantObject])/*area*/ * 
-    				(FRAME_WIDTH - (vtargetobjx[mostSignificantObject] + (vtargetobjw[mostSignificantObject] / 2)))/*position from right*/) {
+    				Math.abs((FRAME_WIDTH / 2) - (vtargetobjx[mostSignificantObject] + (vtargetobjw[mostSignificantObject] / 2)))/*position from right*/) {
     			mostSignificantObject = i;
     		}
     	}
@@ -59,27 +58,13 @@ public class DriveToVisionTargetLeft extends Command {
     		moveY = 0;
     	}
     	else {
-    		moveY = 1/Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2));
-    		moveX = ((vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2)/*position*/ - (FRAME_WIDTH / 2));
-    		
-    		//System.out.println(Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2)));
-    		/*
-    		if ((Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2 - (FRAME_WIDTH / 2)) < 20)){
-    			inline++;
-    		}
-    		if (inline>2) {
-    			//System.out.println("exiting");
-    			moveX=0;
-    		}
-    		*/
-    		
-
-
+    		moveX = (vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2)/*position*/ - (FRAME_WIDTH / 2);
+    		moveY = 1 / Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2));
     	}
     	moveX *= XSPEED_MULTIPLIER;
     	moveY *= YSPEED_MULTIPLIER;
     	if (moveX > MAX_SPEED) moveX = MAX_SPEED;
-    	else if (moveX < -MAX_SPEED) moveX = -MAX_SPEED;
+    	else if (moveX < -MAX_SPEED) moveX = MAX_SPEED;
     	if (moveY > MAX_SPEED) moveY = MAX_SPEED;
     	else if (moveY < -MAX_SPEED) moveY = -MAX_SPEED;
     	
@@ -88,14 +73,15 @@ public class DriveToVisionTargetLeft extends Command {
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
     	
-    	//rotate = 0;
+    	rotate = 0;
+    	moveY = 0;
     	
-    	Robot.driveTrain.drive(moveY, -moveX, rotate, false);
+    	Robot.driveTrain.drive(moveY, moveX, rotate, false);
     	}
     }
 
     protected boolean isFinished() {
-        return (objectWidth >= FINAL_WIDTH);
+        return (Robot.claw.holdingCube());
     }
     
     protected void end() {
