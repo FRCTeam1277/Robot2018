@@ -10,11 +10,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class DriveToVisionTargetLeft extends Command {
 	
-	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 180;
-	private final double XSPEED_MULTIPLIER = 0.004, YSPEED_MULTIPLIER = 20.0;
-	private final double  MAX_SPEED = 0.6, LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.005;
+	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 100;
+	private final double XSPEED_MULTIPLIER = 0.002, YSPEED_MULTIPLIER = 20.0;
+	private final double  MAX_SPEED = 0.5, LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.005;
 	private int mostSignificantObject;
 	private double objectWidth;
+	int inline=0;
 
     public DriveToVisionTargetLeft() {
     	requires(Robot.driveTrain);
@@ -59,13 +60,27 @@ public class DriveToVisionTargetLeft extends Command {
     		moveY = 0;
     	}
     	else {
-    		moveX = (vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2)/*position*/ - (FRAME_WIDTH / 2);
-    		moveY = 1 / Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2));
+    		moveY = 1/Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2));
+    		moveX = ((vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2)/*position*/ - (FRAME_WIDTH / 2));
+    		
+    		//System.out.println(Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2/*position*/ - (FRAME_WIDTH / 2)));
+    		/*
+    		if ((Math.abs(vtargetobjx[mostSignificantObject]+vtargetobjw[mostSignificantObject]/2 - (FRAME_WIDTH / 2)) < 20)){
+    			inline++;
+    		}
+    		if (inline>2) {
+    			//System.out.println("exiting");
+    			moveX=0;
+    		}
+    		*/
+    		
+
+
     	}
     	moveX *= XSPEED_MULTIPLIER;
     	moveY *= YSPEED_MULTIPLIER;
     	if (moveX > MAX_SPEED) moveX = MAX_SPEED;
-    	else if (moveX < -MAX_SPEED) moveX = MAX_SPEED;
+    	else if (moveX < -MAX_SPEED) moveX = -MAX_SPEED;
     	if (moveY > MAX_SPEED) moveY = MAX_SPEED;
     	else if (moveY < -MAX_SPEED) moveY = -MAX_SPEED;
     	
@@ -74,10 +89,9 @@ public class DriveToVisionTargetLeft extends Command {
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
     	
-    	rotate = 0;
-    	moveY = 0;
+    	//rotate = 0;
     	
-    	Robot.driveTrain.drive(moveY, moveX, rotate, false);
+    	Robot.driveTrain.drive(moveY, -moveX, rotate, false);
     	}
     }
 

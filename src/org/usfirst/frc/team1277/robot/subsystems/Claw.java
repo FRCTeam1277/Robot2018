@@ -49,5 +49,10 @@ public class Claw extends Subsystem {
     public void initDefaultCommand() {
     	
     }
+
+	public void dirveWheels(double tHROW_SPEED, double tHROW_SPEED2) {
+		// TODO Auto-generated method stub
+		
+	}
     
 }

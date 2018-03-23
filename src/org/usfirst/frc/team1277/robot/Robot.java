@@ -15,6 +15,7 @@ import org.usfirst.frc.team1277.robot.autosequences.AutoScoreOnSwitchFromRight;
 import org.usfirst.frc.team1277.robot.autosequences.DriveFoward;
 import org.usfirst.frc.team1277.robot.autosequences.DriveToAutoLine;
 import org.usfirst.frc.team1277.robot.commands.DriveTimed;
+import org.usfirst.frc.team1277.robot.commands.DriveToVisionTargetLeft;
 import org.usfirst.frc.team1277.robot.subsystems.Claw;
 import org.usfirst.frc.team1277.robot.subsystems.ClawRotator;
 import org.usfirst.frc.team1277.robot.subsystems.DriveTrain;
@@ -64,7 +65,7 @@ public class Robot extends TimedRobot {
 		
 		
 		RobotMap.init();
-		//claw = new Claw();
+		claw = new Claw();
 		clawRotator = new ClawRotator();
 		lift = new Lift();
 		oi = new OI();
@@ -75,15 +76,15 @@ public class Robot extends TimedRobot {
 		//Start autonomous
 		chooser.addDefault("Drive To Auto Line", new DriveToAutoLine());
 		chooser.addObject("Drive Foward", new DriveFoward());
-		chooser.addObject("Timed Drive", new DriveTimed(0, 0.5, 2));
-		
+		//chooser.addObject("Timed Drive", new DriveTimed(0, 0.5, 2));
+		chooser.addObject("Vison left", new DriveToVisionTargetLeft());
 		chooser.addObject("Score On Scale From Left", new AutoScoreOnScaleFromLeft());
-		chooser.addObject("Score On Switch From Left", new AutoScoreOnSwitchFromLeft());
+		//chooser.addObject("Score On Switch From Left", new AutoScoreOnSwitchFromLeft());
 		
-		chooser.addObject("Score On Switch From Center", new AutoScoreOnSwitchFromCenter());
+		//chooser.addObject("Score On Switch From Center", new AutoScoreOnSwitchFromCenter());
 		
-		chooser.addObject("Score On Scale From Right", new AutoScoreOnScaleFromRight());
-		chooser.addObject("Score On Switch From Right", new AutoScoreOnSwitchFromRight());
+		//chooser.addObject("Score On Scale From Right", new AutoScoreOnScaleFromRight());
+		//chooser.addObject("Score On Switch From Right", new AutoScoreOnSwitchFromRight());
 		
 		SmartDashboard.putData("Auto mode", chooser);
 	}
