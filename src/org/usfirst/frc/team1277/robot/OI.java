@@ -7,7 +7,9 @@
 
 package org.usfirst.frc.team1277.robot;
 
-import org.usfirst.frc.team1277.robot.commands.DeployClaw;
+import org.usfirst.frc.team1277.robot.commands.ClawPullCubeIn;
+import org.usfirst.frc.team1277.robot.commands.ClawPushCubeOut;
+import org.usfirst.frc.team1277.robot.commands.ClawThrowCubeOut;
 import org.usfirst.frc.team1277.robot.commands.LiftClimb;
 import org.usfirst.frc.team1277.robot.commands.LiftClimbingBar;
 import org.usfirst.frc.team1277.robot.commands.LiftDown;
@@ -16,6 +18,8 @@ import org.usfirst.frc.team1277.robot.commands.LiftToBottom;
 import org.usfirst.frc.team1277.robot.commands.LiftToScale;
 import org.usfirst.frc.team1277.robot.commands.LiftToSwitch;
 import org.usfirst.frc.team1277.robot.commands.LiftUp;
+import org.usfirst.frc.team1277.robot.commands.RotatorRetract;
+import org.usfirst.frc.team1277.robot.commands.RotatorToggle;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -30,27 +34,30 @@ import edu.wpi.first.wpilibj.buttons.JoystickButton;
  */
 public class OI {
 	public static Joystick joystick = new Joystick(0);
+	public static Joystick joystickSecondary = new Joystick(1);
 	public static AHRS ahrs;
 	
 	//Drive buttons
 	public static JoystickButton robotOrientedDrive = new JoystickButton(joystick, 10);
 	
 	//Claw buttons
-	//public static JoystickButton closeClaw = new JoystickButton(joystick, 1);
-	//public static JoystickButton releaseClaw = new JoystickButton(joystick, 2);
+	public static JoystickButton clawPullIn = new JoystickButton(joystick, 1); 
+	public static JoystickButton clawPushOut = new JoystickButton(joystick, 3);
+	public static JoystickButton clawThrowOut = new JoystickButton(joystick, 5);
 	
 	//RotateClaw buttons
-	public static JoystickButton deployClaw = new JoystickButton(joystick, 12);
+	public static JoystickButton rotatorRetract = new JoystickButton(joystickSecondary, 1);
+	public static JoystickButton rotatorToggle = new JoystickButton(joystick, 2);
 	
 	//Lift buttons
-	public static JoystickButton liftUp = new JoystickButton(joystick, 5);
-	public static JoystickButton liftDown = new JoystickButton(joystick, 3);
-	public static JoystickButton liftDeployClimber = new JoystickButton(joystick, 6);
-	public static JoystickButton liftClimb = new JoystickButton(joystick, 4);
+	public static JoystickButton liftUp = new JoystickButton(joystick, 6);
+	public static JoystickButton liftDown = new JoystickButton(joystick, 4);
+	public static JoystickButton liftDeployClimber = new JoystickButton(joystickSecondary, 6);
+	public static JoystickButton liftClimb = new JoystickButton(joystickSecondary, 4);
 	public static JoystickButton liftToSwitch = new JoystickButton(joystick, 7);
 	public static JoystickButton liftToScale = new JoystickButton(joystick, 8);
 	public static JoystickButton liftToBottom = new JoystickButton(joystick, 9);
-	public static JoystickButton liftShiftGear = new JoystickButton(joystick, 11);
+	public static JoystickButton liftShiftGear = new JoystickButton(joystickSecondary, 11);
 	
 	public OI(){
 		
@@ -71,10 +78,14 @@ public class OI {
             DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
         };
 
-        //closeClaw.whenPressed(new GrabCube());
-        //releaseClaw.whenPressed(new ReleaseCube());
+        clawPullIn.whileHeld(new ClawPullCubeIn());
+        clawPushOut.whenPressed(new ClawPushCubeOut());
+        clawThrowOut.whenPressed(new ClawThrowCubeOut());
         
-        deployClaw.whenPressed(new DeployClaw());
+        //liftClaw.whenPressed(new RotatorLift()); //Not sure what to do here
+		//dropClaw.whenPressed(new RotatorDrop()); //Not sure what to do here
+        rotatorRetract.whenPressed(new RotatorRetract());
+		rotatorToggle.whenPressed(new RotatorToggle());
         
         liftUp.whileHeld(new LiftUp());
         liftDown.whileHeld(new LiftDown());

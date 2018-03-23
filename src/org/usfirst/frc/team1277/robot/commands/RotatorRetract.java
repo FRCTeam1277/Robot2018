@@ -10,8 +10,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class RotatorRetract extends Command {
 
-	private final double RAISE_SPEED = -0.5, RESIST_SPEED = -0.05;
-	private final double RESIST_END_POINT = 70, RAISE_TIME = 20;
+	private final double RAISE_SPEED = -0.5, LET_DOWN_SPEED = 0.0, RESIST_SPEED = -0.15;
+	private final double RESIST_END_POINT = 70, LET_DOWN_END_POINT = 10, RAISE_TIME = 20;
 	private double initialPosition, counter;
 	
 	public RotatorRetract() {
@@ -29,9 +29,12 @@ public class RotatorRetract extends Command {
 	
 	protected void execute() {
 		if (counter >= RAISE_TIME) {
+			Robot.clawRotator.rotate(LET_DOWN_SPEED);
+		}
+		else counter++;
+		if (Robot.clawRotator.getPosition() - initialPosition >= LET_DOWN_END_POINT) {
 			Robot.clawRotator.rotate(RESIST_SPEED);
 		}
-		counter++;
 		SmartDashboard.putNumber("Counter", counter);
 	}
 	

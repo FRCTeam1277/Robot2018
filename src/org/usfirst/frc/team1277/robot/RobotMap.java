@@ -38,8 +38,8 @@ public class RobotMap {
 	public static Relay liftLocker;
 	
 	//Claw
-	public static Spark clawMotor;
-	public static Encoder clawEncoder;
+	public static Spark clawMotorLeft;
+	public static Spark clawMotorRight;
 	public static DigitalInput clawLimit;
 	
 	//Claw Retractor
@@ -79,12 +79,12 @@ public class RobotMap {
 		liftLocker = new Relay(1);
 		
 		//Claw
-		clawMotor = new Spark(0);
-		clawEncoder = new Encoder(0, 1);
+		clawMotorLeft = new Spark(1);
+		clawMotorRight = new Spark(3);
 		clawLimit = new DigitalInput(5);
-
+		
 		//Claw Retractor
-		rotateClawMotor = new Spark(1);
+		rotateClawMotor = new Spark(0);
 		rotateClawEncoder = new Encoder(2, 3);
 		rotateClawStopper = new Relay(0);
 	}

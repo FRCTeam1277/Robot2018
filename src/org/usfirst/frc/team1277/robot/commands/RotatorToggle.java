@@ -22,16 +22,16 @@ public class RotatorToggle extends Command {
     protected void initialize() {
     	initialPosition = 0;
     	lifted = true;
-    	previousButton = Robot.oi.getJoystick().getRawButton(10);
+    	previousButton = Robot.oi.rotatorToggle.get();
     	SmartDashboard.putBoolean("lifted", lifted);
     }
 
     protected void execute() {
     	double speed;
     	
-    	if (Robot.oi.getJoystick().getRawButton(10) && !previousButton) lifted = !lifted;
+    	if (Robot.oi.rotatorToggle.get() && !previousButton) lifted = !lifted;
     	SmartDashboard.putBoolean("lifted", lifted);
-    	previousButton = Robot.oi.getJoystick().getRawButton(10);
+    	previousButton = Robot.oi.rotatorToggle.get();
     	if (lifted) {
     		speed = HOLD_SPEED + SENSITIVITY * (HOLD_POSITION - (Robot.clawRotator.getPosition() - initialPosition));
     		if (Math.abs(speed - HOLD_SPEED) >= MAX_SPEED) speed = (speed - HOLD_SPEED) / Math.abs(speed - HOLD_SPEED) * MAX_SPEED + HOLD_SPEED;
@@ -40,7 +40,8 @@ public class RotatorToggle extends Command {
     		SmartDashboard.putNumber("Speed", speed);
     	}
     	else {
-    		Robot.clawRotator.rotate(RESIST_EMPTY_SPEED);
+    		if (Robot.claw.holdingCube()) Robot.clawRotator.rotate(RESIST_FULL_SPEED);
+    		else Robot.clawRotator.rotate(RESIST_EMPTY_SPEED);
     	}
     }
 
