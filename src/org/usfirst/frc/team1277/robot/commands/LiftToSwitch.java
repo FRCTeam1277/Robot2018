@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.command.Command;
 
 public class LiftToSwitch extends Command {
 	
-	private final double SWITCH_HEIGHT = 15000, ERROR = 512; //Counts (4096 per Revolution)
+	private final double SWITCH_HEIGHT = 15000, ERROR = 512; //Counts (4096 per Revolution, 36000 at Top)
 	
 	public LiftToSwitch() {
 		requires(Robot.lift);

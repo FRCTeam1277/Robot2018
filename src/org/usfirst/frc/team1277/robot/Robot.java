@@ -65,9 +65,9 @@ public class Robot extends TimedRobot {
     	
 		RobotMap.init();
 		claw = new Claw();
-		clawRotator = new ClawRotator();
 		lift = new Lift();
 		oi = new OI();
+		clawRotator = new ClawRotator();
 		driveTrain = new DriveTrain();
 		driveTrain.driveTrainInit();
 		OI.getAhrs().zeroYaw();

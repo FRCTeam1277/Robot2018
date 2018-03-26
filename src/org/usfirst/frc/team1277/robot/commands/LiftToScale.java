@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.command.Command;
 
 public class LiftToScale extends Command {
 	
-	private final double SCALE_HEIGHT = 35000, ERROR = 512; //Counts (4096 per Revolution)
+	private final double SCALE_HEIGHT = 35000, ERROR = 512; //Counts (4096 per Revolution, 36000 at Top)
 	
 	public LiftToScale() {
 		requires(Robot.lift);

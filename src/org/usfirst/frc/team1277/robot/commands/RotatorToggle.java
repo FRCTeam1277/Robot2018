@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1277.robot.commands;
 
+import org.usfirst.frc.team1277.robot.OI;
 import org.usfirst.frc.team1277.robot.Robot;
 
 import edu.wpi.first.wpilibj.command.Command;
@@ -11,7 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class RotatorToggle extends Command {
 
 	private final double HOLD_SPEED = -0.4, RESIST_FULL_SPEED = -0.15, RESIST_EMPTY_SPEED = -0.01;
-	private final double HOLD_POSITION = -90, SENSITIVITY = 0.1, MAX_SPEED = 0.4;
+	private final double HOLD_POSITION = 35, SENSITIVITY = 0.1, MAX_SPEED = 0.5; //Counts (497 per Revolution)
 	private double initialPosition;
 	private boolean lifted, previousButton;
 
@@ -21,28 +22,30 @@ public class RotatorToggle extends Command {
 
     protected void initialize() {
     	initialPosition = 0;
-    	lifted = true;
-    	previousButton = Robot.oi.rotatorToggle.get();
-    	SmartDashboard.putBoolean("lifted", lifted);
+    	lifted = false;
+    	previousButton = OI.rotatorToggle.get();
     }
 
     protected void execute() {
     	double speed;
     	
-    	if (Robot.oi.rotatorToggle.get() && !previousButton) lifted = !lifted;
-    	SmartDashboard.putBoolean("lifted", lifted);
-    	previousButton = Robot.oi.rotatorToggle.get();
+    	//Toggle When Button is Pressed
+    	if (OI.rotatorToggle.get() && !previousButton) lifted = !lifted;
+    	previousButton = OI.rotatorToggle.get();
+    	SmartDashboard.putBoolean("Lifted Claw", lifted);
+    	
+    	//Determine Speed
     	if (lifted) {
     		speed = HOLD_SPEED + SENSITIVITY * (HOLD_POSITION - (Robot.clawRotator.getPosition() - initialPosition));
     		if (Math.abs(speed - HOLD_SPEED) >= MAX_SPEED) speed = (speed - HOLD_SPEED) / Math.abs(speed - HOLD_SPEED) * MAX_SPEED + HOLD_SPEED;
-    		Robot.clawRotator.rotate(speed);
-    		SmartDashboard.putNumber("Position", Robot.clawRotator.getPosition() - initialPosition);
-    		SmartDashboard.putNumber("Speed", speed);
     	}
     	else {
-    		if (Robot.claw.holdingCube()) Robot.clawRotator.rotate(RESIST_FULL_SPEED);
-    		else Robot.clawRotator.rotate(RESIST_EMPTY_SPEED);
+    		if (Robot.claw.holdingCube()) speed = RESIST_FULL_SPEED;
+    		else speed = RESIST_EMPTY_SPEED;
     	}
+    	
+    	//Rotate Claw
+    	Robot.clawRotator.rotate(speed);
     }
 
     protected boolean isFinished() {

@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1277.robot.subsystems;
 
 import org.usfirst.frc.team1277.robot.RobotMap;
+import org.usfirst.frc.team1277.robot.commands.RotatorToggle;
 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Relay;
@@ -24,10 +25,6 @@ public class ClawRotator extends Subsystem {
     	motor.set(speed);
     }
     
-    public void switchStopper() {
-    	//stopper.set();
-    }
-    
     public void openStopper() {
     	stopper.set(Relay.Value.kForward);
     }
@@ -37,7 +34,7 @@ public class ClawRotator extends Subsystem {
     }
 
     public void initDefaultCommand() {
-    	
+    	setDefaultCommand(new RotatorToggle());
     }
     
     public double getPosition() {

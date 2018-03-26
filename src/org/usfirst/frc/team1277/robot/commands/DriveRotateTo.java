@@ -28,12 +28,21 @@ public class DriveRotateTo extends Command {
     protected void execute() {
     	double rotate;
     	
+    	//Get PID Output
     	rotate = Robot.driveTrain.getRobotRotate();
+    	
+    	//Adjust for Low Speeds
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
-    	Robot.driveTrain.drive(0, 0, rotate, true);
+    	
+    	//Drive
+    	Robot.driveTrain.drive(0, 0, rotate, true, false);
+    	
+    	//Check Rotation
     	if (Math.abs(Robot.driveTrain.getDesiredDirection() - Robot.driveTrain.getDirection()) <= ERROR * PI / 180f) count--;
     	else count = INITIAL_COUNT;
+    	
+    	//Dashboard
     	SmartDashboard.putNumber("Angle", angle);
     	SmartDashboard.putNumber("Error", Math.abs(Robot.driveTrain.getDesiredDirection() - Robot.driveTrain.getDirection()));
     	SmartDashboard.putNumber("Allowed Error", ERROR * PI / 180f);
@@ -41,15 +50,14 @@ public class DriveRotateTo extends Command {
     }
 
     protected boolean isFinished() {
-    	if (count <= 0) return true;
-        return false;
+    	return (count <= 0);
     }
 
     protected void end() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, false);
     }
 
     protected void interrupted() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, false);
     }
 }

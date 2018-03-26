@@ -24,7 +24,7 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     private final TalonSRX rLMotor = RobotMap.driveTrainRearLeft;
     private final TalonSRX rRMotor = RobotMap.driveTrainRearRight;
     
-    private final double PI = Math.PI, PERPENDICULAR_MOVE_FACTOR = 1.5;
+    private final double PI = Math.PI, PERPENDICULAR_MOVE_FACTOR = 1.5, MAX_VELOCITY = 3000.0;
     private double direction = 0, desiredDirection = 0;
     
     private PIDController rotateController;
@@ -32,11 +32,13 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     private double robotRotate = 0;
     
     private ModifiedPIDController moveXController, moveYController;
-    private double MOVE_P_GAIN = 0.00015, MOVE_I_GAIN = 0.0, MOVE_D_GAIN = 0.001, MOVE_F_GAIN = 0.0, TOLLERANCE_COUNTS = 512; //4096 counts per wheel revolution, final
+    private double MOVE_P_GAIN = 0.00015, MOVE_I_GAIN = 0.0, MOVE_D_GAIN = 0.001, MOVE_F_GAIN = 0.0, TOLLERANCE_COUNTS = 512; //4096 counts per wheel revolution
     private DataCommunicator robotPositionX, robotPositionY;
     private DataCommunicator robotDriveX, robotDriveY;
 	private double motorPositionFL = 0, motorPositionFR = 0, motorPositionRL = 0, motorPositionRR = 0,
     		motorPositionChangeFL = 0, motorPositionChangeFR = 0, motorPositionChangeRL = 0, motorPositionChangeRR = 0;
+	
+	private final double VELOCITY_P_GAIN = 0.90, VELOCITY_I_GAIN = 0.0, VELOCITY_D_GAIN = 0.72, VELOCITY_F_GAIN = 0.36;
     
     public DriveTrain(){
     	NetworkTableInstance instance = NetworkTableInstance.getDefault();
@@ -45,7 +47,8 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     	MOVE_I_GAIN = gains.getEntry("MOVE_I_GAIN").getValue().getDouble();
     	MOVE_D_GAIN = gains.getEntry("MOVE_D_GAIN").getValue().getDouble();
     	MOVE_F_GAIN = gains.getEntry("MOVE_F_GAIN").getValue().getDouble();
-    	//PID Control for rotate
+    	
+    	//PID Control for Rotate
     	rotateController = new PIDController(ROTATE_P_GAIN, ROTATE_I_GAIN, ROTATE_D_GAIN, ROTATE_F_GAIN, OI.getAhrs(), this);
     	rotateController.setInputRange(-360.0,  360.0);
     	rotateController.setOutputRange(-1.0, 1.0);
@@ -59,7 +62,7 @@ public class DriveTrain extends Subsystem implements PIDOutput {
         robotDriveX = new DataCommunicator();
         robotDriveY = new DataCommunicator();
         
-        //PID Control for rotate
+        //PID Control for Movement
         moveXController = new ModifiedPIDController(MOVE_P_GAIN, MOVE_I_GAIN, MOVE_D_GAIN, MOVE_F_GAIN, robotPositionX, robotDriveX);
         moveYController = new ModifiedPIDController(MOVE_P_GAIN, MOVE_I_GAIN, MOVE_D_GAIN, MOVE_F_GAIN, robotPositionY, robotDriveY);
         moveXController.setInputRange(-4096000, 4096000);
@@ -70,8 +73,26 @@ public class DriveTrain extends Subsystem implements PIDOutput {
         moveYController.setAbsoluteTolerance(TOLLERANCE_COUNTS);
         moveXController.setContinuous(true);
         moveYController.setContinuous(true);
-        moveXController.enable();
-        moveYController.enable();
+        moveXController.enable(); //may want to use only part time
+        moveYController.enable(); //may want to use only part time
+        
+        //PID Control for Wheel Velocity
+        fLMotor.config_kP(Constants.PIDLoopIdx, VELOCITY_P_GAIN, Constants.timeoutMs);
+		fLMotor.config_kI(Constants.PIDLoopIdx, VELOCITY_I_GAIN, Constants.timeoutMs);
+		fLMotor.config_kD(Constants.PIDLoopIdx, VELOCITY_D_GAIN, Constants.timeoutMs);
+		fLMotor.config_kF(Constants.PIDLoopIdx, VELOCITY_F_GAIN, Constants.timeoutMs);
+		fRMotor.config_kP(Constants.PIDLoopIdx, VELOCITY_P_GAIN, Constants.timeoutMs);
+		fRMotor.config_kI(Constants.PIDLoopIdx, VELOCITY_I_GAIN, Constants.timeoutMs);
+		fRMotor.config_kD(Constants.PIDLoopIdx, VELOCITY_D_GAIN, Constants.timeoutMs);
+		fRMotor.config_kF(Constants.PIDLoopIdx, VELOCITY_F_GAIN, Constants.timeoutMs);
+		rLMotor.config_kP(Constants.PIDLoopIdx, VELOCITY_P_GAIN, Constants.timeoutMs);
+		rLMotor.config_kI(Constants.PIDLoopIdx, VELOCITY_I_GAIN, Constants.timeoutMs);
+		rLMotor.config_kD(Constants.PIDLoopIdx, VELOCITY_D_GAIN, Constants.timeoutMs);
+		rLMotor.config_kF(Constants.PIDLoopIdx, VELOCITY_F_GAIN, Constants.timeoutMs);
+		rRMotor.config_kP(Constants.PIDLoopIdx, VELOCITY_P_GAIN, Constants.timeoutMs);
+		rRMotor.config_kI(Constants.PIDLoopIdx, VELOCITY_I_GAIN, Constants.timeoutMs);
+		rRMotor.config_kD(Constants.PIDLoopIdx, VELOCITY_D_GAIN, Constants.timeoutMs);
+		rRMotor.config_kF(Constants.PIDLoopIdx, VELOCITY_F_GAIN, Constants.timeoutMs);
     }
     
     public void driveTrainInit() {
@@ -89,42 +110,40 @@ public class DriveTrain extends Subsystem implements PIDOutput {
 		robotRotate = output;
 	}
     
-    public void drive(double parallelMove, double perpendicularMove, double rotate, boolean fieldOriented) {
+    public void drive(double parallelMove, double perpendicularMove, double rotate, boolean fieldOriented, boolean velocityMode) {
     	double greatestControl, greatestSpeed;
-    	
-    	//Preliminary calculations
-    	greatestControl = Math.max(Math.max(Math.abs(parallelMove), Math.abs(perpendicularMove)), Math.abs(rotate));
-    	greatestSpeed = Math.max(Math.max(Math.abs(parallelMove - perpendicularMove - rotate), 
-    			Math.abs(parallelMove - perpendicularMove - rotate)),
-    			Math.max(Math.abs(-parallelMove + perpendicularMove - rotate), 
-    			Math.abs(-parallelMove + perpendicularMove - rotate)));
-    	//if(greatestSpeed == 0) greatestSpeed = 1;
-    	
-    	//Dashboard
-    	SmartDashboard.putNumber("Foward", parallelMove);
-    	SmartDashboard.putNumber("Sideways", perpendicularMove);
-    	SmartDashboard.putNumber("Turn", rotate);
     	
     	//Position Tracking
     	updateRobotPosition();
     	SmartDashboard.putNumber("robotPositionX", robotPositionX.getDataPoint());
     	SmartDashboard.putNumber("robotPositionY", robotPositionY.getDataPoint());
     	SmartDashboard.putNumber("direction", direction);
+    	SmartDashboard.putNumber("raw direction", OI.getAhrs().getAngle());
     	
     	//Field Oriented
     	if (fieldOriented) {
     		double moveAngle, maxRadiusFactor, speedMagnitude;
+    		
+    		//Convert Movement to Polar Coordinates
     		moveAngle = Math.atan2(perpendicularMove, parallelMove);
     		speedMagnitude = Math.sqrt((parallelMove * parallelMove) + (perpendicularMove * perpendicularMove));
-    		//inverse of distance to edge of initial square
+    		
+    		//Find Inverse of Distance to Edge of Square With Initial Direction
     		if ((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2) <= PI / 4) maxRadiusFactor = Math.cos((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2));
     		else maxRadiusFactor = Math.cos((PI / 2) - ((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2)));
+    		
+    		//Adjust Move Direction
     		moveAngle += direction;
-    		//factor between distance to edge of final square and initial square
+    		
+    		//Find Factor Between Distance to Edge of Final Square and Initial Square
     		if ((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2) <= PI / 4) maxRadiusFactor /= Math.cos((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2));
     		else maxRadiusFactor /= Math.cos((PI / 2) - ((moveAngle % (PI / 2) + (PI / 2)) % (PI / 2)));
+    		
+    		//Calculate New Movement Speed
     		parallelMove = speedMagnitude * maxRadiusFactor * Math.cos(moveAngle);
     		perpendicularMove = speedMagnitude * maxRadiusFactor * Math.sin(moveAngle);
+    		
+    		//Perpendicular Speed Correction
     		perpendicularMove *= PERPENDICULAR_MOVE_FACTOR;
     		if (Math.abs(perpendicularMove) > 1.0) {
     			parallelMove /= Math.abs(perpendicularMove);
@@ -132,55 +151,47 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     		}
     	}
     	
-    	//Drive the motors
-    	fLMotor.set(ControlMode.PercentOutput ,(parallelMove - perpendicularMove + rotate)* greatestControl / greatestSpeed);
-    	fRMotor.set(ControlMode.PercentOutput ,(-parallelMove - perpendicularMove + rotate)* greatestControl / greatestSpeed);
-    	rLMotor.set(ControlMode.PercentOutput ,(parallelMove + perpendicularMove + rotate)* greatestControl / greatestSpeed);
-    	rRMotor.set(ControlMode.PercentOutput ,(-parallelMove + perpendicularMove + rotate)* greatestControl / greatestSpeed);
-    }
-    /*
-    public void rotateTo() {
-    	double rotate;
-    	direction = OI.getAhrs().getAngle() * PI / 180f;
-    	//rotate = Math.atan(2f * (desiredDirection - direction)) * 2 / PI;
-    	rotate = robotRotate;
-    	if (rotate > 0.005f && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
-    	else if (rotate < -0.005f && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
-    	drive(0, 0, rotate);
-    	SmartDashboard.putNumber("Direction", direction);
-    	SmartDashboard.putNumber("Desired Direction", desiredDirection);
-    	SmartDashboard.putNumber("Rotate", Math.atan(2f * (desiredDirection - direction)) * 2 / PI);
-    }*/
-    /*
-    public void correctPosition() {
-    	direction = OI.getAhrs().getAngle() * PI / 180f;
-    	if(Constants.driveSensorPhase == Constants.driveMotorInvert) {
-        	fLMotor.setSelectedSensorPosition(fLMotor.getSensorCollection().getPulseWidthPosition(), Constants.PIDLoopIdx, Constants.timeoutMs);
-        	fRMotor.setSelectedSensorPosition(fRMotor.getSensorCollection().getPulseWidthPosition(), Constants.PIDLoopIdx, Constants.timeoutMs);
-        	rLMotor.setSelectedSensorPosition(rLMotor.getSensorCollection().getPulseWidthPosition(), Constants.PIDLoopIdx, Constants.timeoutMs);
-        	rRMotor.setSelectedSensorPosition(rRMotor.getSensorCollection().getPulseWidthPosition(), Constants.PIDLoopIdx, Constants.timeoutMs);
+    	//Preliminary Control Calculations
+    	greatestControl = Math.max(Math.max(Math.abs(parallelMove), Math.abs(perpendicularMove)), Math.abs(rotate));
+    	greatestSpeed = Math.max(Math.max(Math.abs(parallelMove - perpendicularMove + rotate), 
+    			Math.abs(-parallelMove - perpendicularMove + rotate)),
+    			Math.max(Math.abs(parallelMove + perpendicularMove + rotate), 
+    			Math.abs(-parallelMove + perpendicularMove + rotate)));
+    	//if(greatestSpeed == 0) greatestSpeed = 1;
+    	
+    	//Dashboard
+    	SmartDashboard.putNumber("Foward", parallelMove);
+    	SmartDashboard.putNumber("Sideways", perpendicularMove);
+    	SmartDashboard.putNumber("Turn", rotate);
+    	
+    	//Drive Motors
+    	if (velocityMode) {
+    		fLMotor.set(ControlMode.Velocity ,(parallelMove - perpendicularMove + rotate) * greatestControl / greatestSpeed * MAX_VELOCITY);
+    		fRMotor.set(ControlMode.Velocity ,(-parallelMove - perpendicularMove + rotate) * greatestControl / greatestSpeed * MAX_VELOCITY);
+    		rLMotor.set(ControlMode.Velocity ,(parallelMove + perpendicularMove + rotate) * greatestControl / greatestSpeed * MAX_VELOCITY);
+    		rRMotor.set(ControlMode.Velocity ,(-parallelMove + perpendicularMove + rotate) * greatestControl / greatestSpeed * MAX_VELOCITY);
     	}
     	else {
-        	fLMotor.setSelectedSensorPosition(fLMotor.getSensorCollection().getPulseWidthPosition() * -1, Constants.PIDLoopIdx, Constants.timeoutMs);
-        	fRMotor.setSelectedSensorPosition(fRMotor.getSensorCollection().getPulseWidthPosition() * -1, Constants.PIDLoopIdx, Constants.timeoutMs);
-        	rLMotor.setSelectedSensorPosition(rLMotor.getSensorCollection().getPulseWidthPosition() * -1, Constants.PIDLoopIdx, Constants.timeoutMs);
-        	rRMotor.setSelectedSensorPosition(rRMotor.getSensorCollection().getPulseWidthPosition() * -1, Constants.PIDLoopIdx, Constants.timeoutMs);
+    		fLMotor.set(ControlMode.PercentOutput ,(parallelMove - perpendicularMove + rotate) * greatestControl / greatestSpeed);
+    		fRMotor.set(ControlMode.PercentOutput ,(-parallelMove - perpendicularMove + rotate) * greatestControl / greatestSpeed);
+    		rLMotor.set(ControlMode.PercentOutput ,(parallelMove + perpendicularMove + rotate) * greatestControl / greatestSpeed);
+    		rRMotor.set(ControlMode.PercentOutput ,(-parallelMove + perpendicularMove + rotate) * greatestControl / greatestSpeed);
     	}
-    }*/
+    }
     
     public void updateRobotPosition() {
     	double previousDirection = direction;
 
-    	//Get gyroscope reading
+    	//Get Gyroscope Reading
     	updateDirection();
     	
-    	//Find motor position changes
+    	//Find Motor Position Changes
     	motorPositionChangeFL = fLMotor.getSelectedSensorPosition(0) - motorPositionFL;
     	motorPositionChangeFR = fRMotor.getSelectedSensorPosition(0) - motorPositionFR;
     	motorPositionChangeRL = rLMotor.getSelectedSensorPosition(0) - motorPositionRL;
     	motorPositionChangeRR = rRMotor.getSelectedSensorPosition(0) - motorPositionRR;
     	
-    	//Calculate robot position
+    	//Calculate Robot Position
     	robotPositionX.setDataPoint(robotPositionX.getDataPoint() 
     			+ (-motorPositionChangeFL - motorPositionChangeFR + motorPositionChangeRL + motorPositionChangeRR) * Math.cos((previousDirection + direction) / 2) / PERPENDICULAR_MOVE_FACTOR
     			+ (motorPositionChangeFL - motorPositionChangeFR + motorPositionChangeRL - motorPositionChangeRR) * Math.sin((previousDirection + direction) / 2));
@@ -188,17 +199,17 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     			+ (motorPositionChangeFL - motorPositionChangeFR + motorPositionChangeRL - motorPositionChangeRR) * Math.cos((previousDirection + direction) / 2)
     			+ (-motorPositionChangeFL - motorPositionChangeFR + motorPositionChangeRL + motorPositionChangeRR) * Math.sin((previousDirection + direction) / 2) / PERPENDICULAR_MOVE_FACTOR);
     	
-    	//Update motor positions
+    	//Update Motor Positions
     	motorPositionFL += motorPositionChangeFL;
     	motorPositionFR += motorPositionChangeFR;
     	motorPositionRL += motorPositionChangeRL;
     	motorPositionRR += motorPositionChangeRR;
-    	
+    	/*
     	SmartDashboard.putNumber("motorPositionChangeFL", motorPositionChangeFL);
     	SmartDashboard.putNumber("fLMotor", fLMotor.getSelectedSensorPosition(0));
     	SmartDashboard.putNumber("fRMotor", fRMotor.getSelectedSensorPosition(0));
     	SmartDashboard.putNumber("rLMotor", rLMotor.getSelectedSensorPosition(0));
-    	SmartDashboard.putNumber("rRMotor", rRMotor.getSelectedSensorPosition(0));
+    	SmartDashboard.putNumber("rRMotor", rRMotor.getSelectedSensorPosition(0));*/
     }
     
     public void restartPositionTracking(boolean zeroPosition) {
@@ -211,44 +222,6 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     		robotPositionY.setDataPoint(0);
     	}
     }
-    /*
-	public void velocityMode() {
-    	fLMotor.config_kP(0, 0.90f, 10);
-		fLMotor.config_kI(0, 0, 10);
-		fLMotor.config_kD(0, 0.72f, 10);
-		fLMotor.config_kF(0, 0.36f, 10);
-		fRMotor.config_kP(0, 0.90f, 10);
-		fRMotor.config_kI(0, 0, 10);
-		fRMotor.config_kD(0, 0.72f, 10);
-		fRMotor.config_kF(0, 0.36f, 10);
-		rLMotor.config_kP(0, 0.90f, 10);
-		rLMotor.config_kI(0, 0, 10);
-		rLMotor.config_kD(0, 0.72f, 10);
-		rLMotor.config_kF(0, 0.36f, 10);
-		rRMotor.config_kP(0, 0.90f, 10);
-		rRMotor.config_kI(0, 0, 10);
-		rRMotor.config_kD(0, 0.72f, 10);
-		rRMotor.config_kF(0, 0.36f, 10);
-    }
-    
-    public void positionMode() {
-    	fLMotor.config_kP(0, 0.90f, 10);
-		fLMotor.config_kI(0, 0, 10);
-		fLMotor.config_kD(0, 0.72f, 10);
-		fLMotor.config_kF(0, 0, 10);
-		fRMotor.config_kP(0, 0.90f, 10);
-		fRMotor.config_kI(0, 0, 10);
-		fRMotor.config_kD(0, 0.72f, 10);
-		fRMotor.config_kF(0, 0, 10);
-		rLMotor.config_kP(0, 0.90f, 10);
-		rLMotor.config_kI(0, 0, 10);
-		rLMotor.config_kD(0, 0.72f, 10);
-		rLMotor.config_kF(0, 0, 10);
-		rRMotor.config_kP(0, 0.90f, 10);
-		rRMotor.config_kI(0, 0, 10);
-		rRMotor.config_kD(0, 0.72f, 10);
-		rRMotor.config_kF(0, 0, 10);
-    }*/
     
     public void initDefaultCommand() {
         setDefaultCommand(new Drive());
@@ -256,7 +229,7 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     
     public void updateDirection() {
 		//direction = ((OI.getAhrs().getAngle() * PI / 180f) % (PI));
-    	direction = OI.getAhrs().getAngle();
+    	direction = OI.getAhrs().getAngle() * PI / 180f;
 	}
 
 	public double getDirection() {

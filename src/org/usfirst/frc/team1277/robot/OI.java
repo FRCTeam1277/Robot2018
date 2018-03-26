@@ -19,7 +19,6 @@ import org.usfirst.frc.team1277.robot.commands.LiftToScale;
 import org.usfirst.frc.team1277.robot.commands.LiftToSwitch;
 import org.usfirst.frc.team1277.robot.commands.LiftUp;
 import org.usfirst.frc.team1277.robot.commands.RotatorRetract;
-import org.usfirst.frc.team1277.robot.commands.RotatorToggle;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -45,7 +44,7 @@ public class OI {
 	public static JoystickButton clawPushOut = new JoystickButton(joystick, 3);
 	public static JoystickButton clawThrowOut = new JoystickButton(joystick, 5);
 	
-	//RotateClaw buttons
+	//ClawRotator buttons
 	public static JoystickButton rotatorRetract = new JoystickButton(joystickSecondary, 1);
 	public static JoystickButton rotatorToggle = new JoystickButton(joystick, 2);
 	
@@ -78,15 +77,15 @@ public class OI {
             DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
         };
 
+        //Claw
         clawPullIn.whileHeld(new ClawPullCubeIn());
         clawPushOut.whenPressed(new ClawPushCubeOut());
         clawThrowOut.whenPressed(new ClawThrowCubeOut());
         
-        //liftClaw.whenPressed(new RotatorLift()); //Not sure what to do here
-		//dropClaw.whenPressed(new RotatorDrop()); //Not sure what to do here
+        //ClawRotator
         rotatorRetract.whenPressed(new RotatorRetract());
-		rotatorToggle.whenPressed(new RotatorToggle());
         
+        //Lift
         liftUp.whileHeld(new LiftUp());
         liftDown.whileHeld(new LiftDown());
         liftDeployClimber.whileHeld(new LiftClimbingBar());

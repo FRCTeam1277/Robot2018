@@ -12,11 +12,11 @@ public class DriveTo extends Command {
 	
 	private double displacementX, displacementY, initialPositionX, initialPositionY, count;
 	private final double INITIAL_COUNT = 20, COUNTS_PER_INCH = 869, ERROR = 2048; //Counts (4096 per revolution)
-	private final double  LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.02;
+	//private final double  LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.02;
 
     public DriveTo(double displacementX, double displacementY) {
     	requires(Robot.driveTrain);
-    	this.displacementX = -displacementX * COUNTS_PER_INCH;//Look into why it is negative
+    	this.displacementX = -displacementX * COUNTS_PER_INCH; //Look into why it is negative
     	this.displacementY = displacementY * COUNTS_PER_INCH;
     }
 
@@ -30,20 +30,29 @@ public class DriveTo extends Command {
 
     protected void execute() {
     	double moveX, moveY, rotate;
+    	
+    	//Get PID Output for Drive Controls
     	moveX = Robot.driveTrain.getRobotDriveX();
     	moveY = Robot.driveTrain.getRobotDriveY();
     	rotate = Robot.driveTrain.getRobotRotate();
+    	/*
+    	//Adjust for Low Speeds
     	if (moveX > LOWEST_CONTROL && moveX < LOWEST_SPEED) moveX = LOWEST_SPEED;
     	else if (moveX < -LOWEST_CONTROL && moveX > -LOWEST_SPEED) moveX = -LOWEST_SPEED;
     	if (moveY > LOWEST_CONTROL && moveY < LOWEST_SPEED) moveY = LOWEST_SPEED;
     	else if (moveY < -LOWEST_CONTROL && moveY > -LOWEST_SPEED) moveY = -LOWEST_SPEED;
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
-    	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
-    	Robot.driveTrain.drive(moveY, moveX, rotate, true);
+    	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;*/
     	
+    	//Drive
+    	Robot.driveTrain.drive(moveY, moveX, rotate, true, true);
+    	
+    	//Check Position
     	if (Math.abs(Robot.driveTrain.getDesiredRobotPositionX() - Robot.driveTrain.getRobotPositionX()) <= ERROR &&
     			Math.abs(Robot.driveTrain.getDesiredRobotPositionY() - Robot.driveTrain.getRobotPositionY()) <= ERROR) count--;
     	else count = INITIAL_COUNT;
+    	
+    	//Dashboard
     	SmartDashboard.putNumber("PositionX", Robot.driveTrain.getRobotPositionX());
     	SmartDashboard.putNumber("PositionY", Robot.driveTrain.getRobotPositionY());
     	SmartDashboard.putNumber("moveX", moveX);
@@ -51,15 +60,14 @@ public class DriveTo extends Command {
     }
 
     protected boolean isFinished() {
-    	if (count <= 0) return true;
-        return false;
+    	return (count <= 0);
     }
 
     protected void end() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, true);
     }
 
     protected void interrupted() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, true);
     }
 }

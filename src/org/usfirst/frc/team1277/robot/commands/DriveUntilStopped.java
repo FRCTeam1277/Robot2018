@@ -34,18 +34,23 @@ public class DriveUntilStopped extends Command {
     protected void execute() {
     	double moveX, moveY, rotate;
     	
+    	//Correct Position for Zeroed Fields
     	if (speedX == 0) moveX = Robot.driveTrain.getRobotDriveX();
     	else moveX = speedX;
     	if (speedY == 0) moveY = Robot.driveTrain.getRobotDriveY();
     	else moveY = speedY;
     	rotate = Robot.driveTrain.getRobotRotate();
+    	
+    	//Adjust for Low Speeds
     	if (moveX > LOWEST_CONTROL && moveX < LOWEST_SPEED) moveX = LOWEST_SPEED;
     	else if (moveX < -LOWEST_CONTROL && moveX > -LOWEST_SPEED) moveX = -LOWEST_SPEED;
     	if (moveY > LOWEST_CONTROL && moveY < LOWEST_SPEED) moveY = LOWEST_SPEED;
     	else if (moveY < -LOWEST_CONTROL && moveY > -LOWEST_SPEED) moveY = -LOWEST_SPEED;
     	if (rotate > LOWEST_CONTROL && rotate < LOWEST_SPEED) rotate = LOWEST_SPEED;
     	else if (rotate < -LOWEST_CONTROL && rotate > -LOWEST_SPEED) rotate = -LOWEST_SPEED;
-    	Robot.driveTrain.drive(moveY, moveX, rotate, true);
+    	
+    	//Drive
+    	Robot.driveTrain.drive(moveY, moveX, rotate, true, false);
     	
     	//Check status
     	previouslyMoving = moving;
@@ -61,10 +66,10 @@ public class DriveUntilStopped extends Command {
     }
 
     protected void end() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, false);
     }
 
     protected void interrupted() {
-    	Robot.driveTrain.drive(0, 0, 0, true);
+    	Robot.driveTrain.drive(0, 0, 0, true, false);
     }
 }

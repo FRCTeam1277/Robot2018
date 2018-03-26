@@ -23,40 +23,52 @@ public class Lift extends Subsystem {
     private final Servo gearShifter = RobotMap.liftGearShifter;
     private final Relay liftLocker = RobotMap.liftLocker;
 
-    private final double LOW_GEAR = 0.35, HIGH_GEAR = 0.65, MAX_HEIGHT = 36000, HOLD_SPEED = 0.1, MAX_UPWARD_SPEED = 1.0, MAX_DOWNWARD_SPEED = -0.6;
-	private boolean highGear = false;
-    private final double P_GAIN = 0.6, I_GAIN = 0.0, D_GAIN = 0.1, F_GAIN = 0.0;
+    private boolean highGear;
+    
+    private final double LOW_GEAR = 0.35, HIGH_GEAR = 0.65, MAX_HEIGHT = 36000;
+    
+    private final double HIGH_GEAR_HOLD_SPEED = 0.3, HIGH_GEAR_MAX_UPWARD_SPEED = 1.0, HIGH_GEAR_MAX_DOWNWARD_SPEED = -0.2;
+    private final double LOW_GEAR_HOLD_SPEED = 0.1, LOW_GEAR_MAX_UPWARD_SPEED = 1.0, LOW_GEAR_MAX_DOWNWARD_SPEED = -0.6;
+    
+    private final double HIGH_GEAR_P_GAIN = 0.6, HIGH_GEAR_I_GAIN = 0.0, HIGH_GEAR_D_GAIN = 0.5, HIGH_GEAR_F_GAIN = 0.0;
+    private final double LOW_GEAR_P_GAIN = 0.6, LOW_GEAR_I_GAIN = 0.0, LOW_GEAR_D_GAIN = 0.1, LOW_GEAR_F_GAIN = 0.0;
     
     public Lift() {
-    	liftMotor.config_kP(Constants.PIDLoopIdx, P_GAIN, Constants.timeoutMs);
-    	liftMotor.config_kI(Constants.PIDLoopIdx, I_GAIN, Constants.timeoutMs);
-    	liftMotor.config_kD(Constants.PIDLoopIdx, D_GAIN, Constants.timeoutMs);
-    	liftMotor.config_kF(Constants.PIDLoopIdx, F_GAIN, Constants.timeoutMs);
-    	liftMotor.configNominalOutputForward(HOLD_SPEED, Constants.timeoutMs);
-    	liftMotor.configNominalOutputReverse(HOLD_SPEED, Constants.timeoutMs);
-    	liftMotor.configPeakOutputForward(MAX_UPWARD_SPEED, Constants.timeoutMs);
-    	liftMotor.configPeakOutputReverse(MAX_DOWNWARD_SPEED, Constants.timeoutMs);
-    	gearShifter.set(LOW_GEAR);
-    	SmartDashboard.putString("Gear", "Low");
+    	
+    	//Set Starting Gear
+    	highGear = false;
+    	if (highGear) gearShifter.set(HIGH_GEAR);
+    	else gearShifter.set(LOW_GEAR);
+    	if (highGear) SmartDashboard.putString("Gear", "High");
+    	else SmartDashboard.putString("Gear", "Low");
     }
 
     public void lift(double speed) {
+    	
+    	//Stop Lift at Bottom
     	if (!lowerLimit.get() && speed < 0) speed = 0;
-    	if (highGear && speed < MAX_DOWNWARD_SPEED) speed = MAX_DOWNWARD_SPEED;
+    	
     	trackHeight();
+    	
+    	//Lift
     	liftMotor.set(ControlMode.PercentOutput, speed);
     }
     
     public void liftHold() {
-    	lift(HOLD_SPEED);
+    	if (highGear) lift(HIGH_GEAR_HOLD_SPEED);
+    	else lift(LOW_GEAR_HOLD_SPEED);
     }
     
     public void liftToPosition(double position) {
+    	
     	trackHeight();
+    	
     	liftMotor.set(ControlMode.Position, position);
     }
     
     public void positionCorrections() {
+    	
+    	//Zero at Bottom
     	if (!lowerLimit.get()) liftMotor.setSelectedSensorPosition(0, Constants.PIDLoopIdx, Constants.timeoutMs);
     }
     
@@ -66,16 +78,43 @@ public class Lift extends Subsystem {
     }
     
     public void shift() {
-    	if (highGear) gearShifter.set(LOW_GEAR);
-    	else gearShifter.set(HIGH_GEAR);
+
+    	//Switch Gear
     	highGear = !highGear;
+    	if (highGear) gearShifter.set(HIGH_GEAR);
+    	else gearShifter.set(LOW_GEAR);
     	if (highGear) SmartDashboard.putString("Gear", "High");
     	else SmartDashboard.putString("Gear", "Low");
+    	
+    	//Update PID
+    	setPID(highGear);
+    }
+    
+    public void setPID(boolean highGear) {
+    	if (highGear) {
+    		liftMotor.config_kP(Constants.PIDLoopIdx, HIGH_GEAR_P_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kI(Constants.PIDLoopIdx, HIGH_GEAR_I_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kD(Constants.PIDLoopIdx, HIGH_GEAR_D_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kF(Constants.PIDLoopIdx, HIGH_GEAR_F_GAIN, Constants.timeoutMs);
+        	liftMotor.configNominalOutputForward(HIGH_GEAR_HOLD_SPEED, Constants.timeoutMs);
+        	liftMotor.configNominalOutputReverse(HIGH_GEAR_HOLD_SPEED, Constants.timeoutMs);
+        	liftMotor.configPeakOutputForward(HIGH_GEAR_MAX_UPWARD_SPEED, Constants.timeoutMs);
+        	liftMotor.configPeakOutputReverse(HIGH_GEAR_MAX_DOWNWARD_SPEED, Constants.timeoutMs);
+    	}
+    	else {
+    		liftMotor.config_kP(Constants.PIDLoopIdx, LOW_GEAR_P_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kI(Constants.PIDLoopIdx, LOW_GEAR_I_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kD(Constants.PIDLoopIdx, LOW_GEAR_D_GAIN, Constants.timeoutMs);
+        	liftMotor.config_kF(Constants.PIDLoopIdx, LOW_GEAR_F_GAIN, Constants.timeoutMs);
+        	liftMotor.configNominalOutputForward(LOW_GEAR_HOLD_SPEED, Constants.timeoutMs);
+        	liftMotor.configNominalOutputReverse(LOW_GEAR_HOLD_SPEED, Constants.timeoutMs);
+        	liftMotor.configPeakOutputForward(LOW_GEAR_MAX_UPWARD_SPEED, Constants.timeoutMs);
+        	liftMotor.configPeakOutputReverse(LOW_GEAR_MAX_DOWNWARD_SPEED, Constants.timeoutMs);
+    	}
     }
     
     public void lock() {
     	liftLocker.set(Relay.Value.kForward);
-    	//SmartDashboard.putString("Locker", "On");
     }
     
     public void unlock() {

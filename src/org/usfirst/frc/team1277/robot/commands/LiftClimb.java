@@ -12,14 +12,13 @@ public class LiftClimb extends Command {
 	
 	private final double LIFT_SPEED = -0.9, HOLD_SPEED = -0.15;
 	private final double CLIMBED_HEIGHT = 8500;
-	private double initialHeight;
 	
 	public LiftClimb() {
 		requires(Robot.lift);
 	}
 	
 	protected void initialize() {
-		initialHeight = Robot.lift.getHeight();
+		
 	}
 
 	protected void execute() {

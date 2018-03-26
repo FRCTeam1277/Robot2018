@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.command.Command;
 public class LiftShiftGear extends Command {
 	
 	private boolean finished, abort;
-	private final double SLOW_LIFT_SPEED = 0.5, SLOW_DROP_SPEED = -0.1, SHIFT_HEIGHT = 128;
+	private final double SLOW_LIFT_SPEED = 0.5, SLOW_DROP_SPEED = -0.1, SHIFT_HEIGHT = 128; //Counts (4096 per Revolution, 36000 at Top)
 
     public LiftShiftGear() {
     	requires(Robot.lift);

@@ -7,67 +7,44 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/**
- *
- */
-public class DriveToVisionTargetRight extends Command {
+public class DriveToVisionTargetCube extends Command {
 	
-	private final int FRAME_WIDTH = 640, FINAL_WIDTH = 180;
+	private final int FRAME_WIDTH = 640;
 	private final double XSPEED_MULTIPLIER = 0.004, YSPEED_MULTIPLIER = 20.0;
 	private final double  MAX_SPEED = 0.6, PARALLEL_MOVE_LOWEST_SPEED = 0.1, PERPENDICULAR_MOVE_LOWEST_SPEED = 0.3, ROTATE_LOWEST_SPEED = 0.1, LOWEST_CONTROL = 0.01;
 	private int mostSignificantObject;
-	private double objectWidth;
-	
-	int numberOfObjects = 0;
 
-    public DriveToVisionTargetRight() {
+    public DriveToVisionTargetCube() {
     	requires(Robot.driveTrain);
     }
 
     protected void initialize() {
     	Robot.driveTrain.setDesiredDirection(Robot.driveTrain.getDirection());
-    	objectWidth = 0;
     }
 
     protected void execute() {
-    	
     	NetworkTableInstance instance = NetworkTableInstance.getDefault();
-    	NetworkTable objects = instance.getTable("vtargetobj");
-    	double numberOfObjects = objects.getEntry("objcount").getValue().getDouble();
-    	double[] vtargetobjx = objects.getEntry("vtargetobjx").getValue().getDoubleArray();
-    	//double[] vtargetobjy = objects.getEntry("vtargetobjy").getValue().getDoubleArray();
-    	double[] vtargetobjw = objects.getEntry("vtargetobjw").getValue().getDoubleArray();
-    	double[] vtargetobjh = objects.getEntry("vtargetobjh").getValue().getDoubleArray();
+    	NetworkTable cubetarget = instance.getTable("cubetarget");
+    	double numberOfObjects = cubetarget.getEntry("objcount").getValue().getDouble();
+    	double[] vtargetobjx = cubetarget.getEntry("cubetargetx").getValue().getDoubleArray();
+    	//double[] vtargetobjy = cubetarget.getEntry("cubetargety").getValue().getDoubleArray();
+    	double[] vtargetobjw = cubetarget.getEntry("cubetargetw").getValue().getDoubleArray();
+    	double[] vtargetobjh = cubetarget.getEntry("cubetargeth").getValue().getDoubleArray();
+    	
+    	SmartDashboard.putNumber("numberOfObjects", numberOfObjects);
     	
     	double moveX, moveY, rotate;
     	
-    	SmartDashboard.putNumber("numberOfObjects", numberOfObjects);
-
     	//Find Which Object to Track
     	mostSignificantObject = -1;
-    	for (int i = 0; i < numberOfObjects; i++) {
+    	for (int i = 0; i <= numberOfObjects; i++) {
     		if (mostSignificantObject == -1) mostSignificantObject = i;
-    		else if ((vtargetobjw[i] * vtargetobjh[i])/*area*/ * (vtargetobjx[i] + (vtargetobjw[i] / 2))/*position from right*/ > 
-					(vtargetobjw[mostSignificantObject] * vtargetobjh[mostSignificantObject])/*area*/ * 
-					(vtargetobjx[mostSignificantObject] + (vtargetobjw[mostSignificantObject] / 2))/*position from right*/) {
-    			mostSignificantObject = i;
-    		}
-    	}
-    	
-    	objectWidth = vtargetobjw[mostSignificantObject];
-    	
-    	//Find Which Object to Track
-    	mostSignificantObject = -1;
-    	for (int i = 0; i < numberOfObjects; i++) {
-    		if (mostSignificantObject == -1) mostSignificantObject = i;
-    		else if ((vtargetobjw[i] * vtargetobjh[i])/*area*/ * (FRAME_WIDTH - (vtargetobjx[i] + (vtargetobjw[i] / 2)))/*position from right*/ > 
+    		else if ((vtargetobjw[i] * vtargetobjh[i])/*area*/ * Math.abs((FRAME_WIDTH / 2) - (vtargetobjx[i] + (vtargetobjw[i] / 2)))/*position from center*/ > 
     				(vtargetobjw[mostSignificantObject] * vtargetobjh[mostSignificantObject])/*area*/ * 
-    				(FRAME_WIDTH - (vtargetobjx[mostSignificantObject] + (vtargetobjw[mostSignificantObject] / 2)))/*position from right*/) {
+    				Math.abs((FRAME_WIDTH / 2) - (vtargetobjx[mostSignificantObject] + (vtargetobjw[mostSignificantObject] / 2)))/*position from center*/) {
     			mostSignificantObject = i;
     		}
     	}
-    	
-    	objectWidth = vtargetobjw[mostSignificantObject];
     	
     	//Calculate Speeds
     	if (mostSignificantObject == -1) {
@@ -101,7 +78,7 @@ public class DriveToVisionTargetRight extends Command {
     }
 
     protected boolean isFinished() {
-        return (objectWidth >= FINAL_WIDTH);
+        return Robot.claw.holdingCube();
     }
     
     protected void end() {

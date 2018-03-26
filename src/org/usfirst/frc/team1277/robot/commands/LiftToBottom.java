@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.command.Command;
  */
 public class LiftToBottom extends Command {
 	
-	private final double BOTTOM_HEIGHT = 0; //Counts (4096 per Revolution)
+	private final double BOTTOM_HEIGHT = 0; //Counts (4096 per Revolution, 36000 at Top)
 
     public LiftToBottom() {
 		requires(Robot.lift);

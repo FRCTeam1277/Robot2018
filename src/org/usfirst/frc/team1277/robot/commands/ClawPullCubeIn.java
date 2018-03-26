@@ -24,8 +24,7 @@ public class ClawPullCubeIn extends Command {
     }
 
     protected boolean isFinished() {
-    	return false;
-        //return Robot.claw.holdingCube();
+        return Robot.claw.holdingCube();
     }
 
     protected void end() {
