@@ -25,11 +25,12 @@ public class DriveToVisionTargetCube extends Command {
     protected void execute() {
     	NetworkTableInstance instance = NetworkTableInstance.getDefault();
     	NetworkTable cubetarget = instance.getTable("cubetarget");
-    	double numberOfObjects = cubetarget.getEntry("objcount").getValue().getDouble();
+    	double[] cubelistpixels = cubetarget.getEntry("cubelistpixels").getValue().getDoubleArray();
     	double[] vtargetobjx = cubetarget.getEntry("cubetargetx").getValue().getDoubleArray();
     	//double[] vtargetobjy = cubetarget.getEntry("cubetargety").getValue().getDoubleArray();
     	double[] vtargetobjw = cubetarget.getEntry("cubetargetw").getValue().getDoubleArray();
     	double[] vtargetobjh = cubetarget.getEntry("cubetargeth").getValue().getDoubleArray();
+    	double numberOfObjects = cubelistpixels.length;
     	
     	SmartDashboard.putNumber("numberOfObjects", numberOfObjects);
     	
